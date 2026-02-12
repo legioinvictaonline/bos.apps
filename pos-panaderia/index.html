@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="POS Panadería">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍞</text></svg>">
+<title>🍞 POS Panadería</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  header {
+    background: #16213e;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #0f3460;
+  }
+  header h1 { font-size: 1.2em; }
+  #clock { font-size: 1.1em; opacity: 0.7; }
+
+  /* Status bar */
+  .status-bar {
+    background: #0f3460;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-around;
+    font-size: 1em;
+    font-weight: 600;
+  }
+  .status-item { text-align: center; }
+  .status-item .label { opacity: 0.6; font-size: 0.75em; display: block; }
+  .status-item .value { font-size: 1.2em; }
+  .status-item .value.positive { color: #2ecc71; }
+  .status-item .value.warning { color: #f39c12; }
+
+  .main-layout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .container {
+    padding: 12px 16px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 20px 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.1s;
+    color: white;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.95); opacity: 0.8; }
+
+  .btn-venta { background: #2ecc71; }
+  .btn-produccion { background: #3498db; }
+  .btn-merma { background: #e74c3c; }
+  .btn-mayoreo { background: #9b59b6; }
+  .btn-cobro { background: #f39c12; color: #1a1a2e; }
+  .btn-corte { background: #1abc9c; }
+  .btn-registros { background: #34495e; }
+  .btn-cancel { background: #555; }
+  .btn-undo { background: #7f8c8d; }
+  .btn-confirm { background: #2ecc71; }
+
+  /* Historial */
+  .history {
+    padding: 8px 16px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .history h3 { font-size: 0.85em; opacity: 0.5; margin-bottom: 6px; }
+  .history-item {
+    padding: 8px 12px;
+    background: #16213e;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .history-item .time { opacity: 0.5; font-size: 0.85em; }
+  .history-item .desc { flex: 1; margin: 0 10px; }
+  .history-item .amount { font-weight: 600; }
+  .history-item .amount.green { color: #2ecc71; }
+  .history-item .amount.red { color: #e74c3c; }
+  .history-item .amount.purple { color: #9b59b6; }
+  .history-item .undo-btn {
+    background: none; border: none; color: #e74c3c; font-size: 1.1em;
+    cursor: pointer; padding: 2px 6px; opacity: 0.5;
+  }
+  .history-item .undo-btn:hover { opacity: 1; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #16213e;
+    border-radius: 16px;
+    padding: 20px;
+    width: 92%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .modal h2 { font-size: 1.2em; text-align: center; }
+  .modal input, .modal select {
+    padding: 14px;
+    border-radius: 8px;
+    border: 2px solid #0f3460;
+    background: #1a1a2e;
+    color: #eee;
+    font-size: 1.3em;
+    text-align: center;
+    width: 100%;
+  }
+  .modal input:focus, .modal select:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+  .modal-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .modal .btn { padding: 14px; font-size: 1em; }
+
+  .cliente-saldo {
+    text-align: center;
+    font-size: 0.95em;
+    padding: 6px;
+    background: #1a1a2e;
+    border-radius: 8px;
+    display: none;
+  }
+
+  /* Confirm screen */
+  .confirm-box {
+    text-align: center;
+    padding: 10px;
+    background: #1a1a2e;
+    border-radius: 8px;
+  }
+  .confirm-box .big { font-size: 1.8em; font-weight: 700; margin: 6px 0; }
+  .confirm-box .detail { opacity: 0.7; font-size: 0.95em; }
+
+  /* Numpad */
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .numpad .btn {
+    padding: 16px;
+    font-size: 1.3em;
+    background: #2c3e50;
+    border-radius: 8px;
+  }
+  .numpad .btn:active { background: #34495e; }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2ecc71;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 1em;
+    font-weight: 600;
+    z-index: 200;
+    display: none;
+    text-align: center;
+    max-width: 90%;
+  }
+  #toast.error { background: #e74c3c; }
+  #toast.show { display: block; animation: fadeInOut 2.5s; }
+
+  /* Report */
+  .report-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .report-overlay.active { display: flex; }
+  .report-box {
+    background: #16213e;
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
+  }
+  .report-box pre {
+    white-space: pre-wrap;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 0.85em;
+    line-height: 1.5;
+  }
+  .report-box .btn { margin-top: 12px; width: 100%; }
+
+  /* Ticket */
+  .ticket {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 150;
+    justify-content: center;
+    align-items: center;
+  }
+  .ticket.active { display: flex; }
+  .ticket-paper {
+    background: white;
+    color: #222;
+    border-radius: 4px;
+    padding: 24px 20px;
+    width: 280px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    text-align: center;
+  }
+  .ticket-paper h3 { margin-bottom: 8px; }
+  .ticket-paper .line { border-top: 1px dashed #999; margin: 8px 0; }
+  .ticket-paper .big { font-size: 1.5em; font-weight: 700; margin: 6px 0; }
+  .ticket-paper .detail { text-align: left; margin: 4px 0; }
+  .ticket-close { margin-top: 16px; }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    85% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @media (max-width: 500px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍞 POS Panadería</h1>
+  <span id="clock"></span>
+</header>
+
+<div class="status-bar" id="statusBar">
+  <div class="status-item">
+    <span class="label">CAJA</span>
+    <span class="value positive" id="statCaja">...</span>
+  </div>
+  <div class="status-item">
+    <span class="label">INVENTARIO</span>
+    <span class="value" id="statInventario">...</span>
+  </div>
+  <div class="status-item">
+    <span class="label">POR COBRAR</span>
+    <span class="value warning" id="statCxC">...</span>
+  </div>
+</div>
+
+<div class="main-layout">
+  <div class="container">
+    <div class="grid">
+      <button class="btn btn-venta" onclick="abrirModal('venta_mostrador')">💰 Venta<br>Mostrador</button>
+      <button class="btn btn-mayoreo" onclick="abrirModal('venta_mayoreo')">📦 Mayoreo</button>
+      <button class="btn btn-cobro" onclick="abrirModal('cobro')">🤝 Cobro</button>
+      <button class="btn btn-produccion" onclick="abrirModal('produccion')">🏭 Producción</button>
+      <button class="btn btn-merma" onclick="abrirModal('merma')">🗑️ Merma</button>
+      <button class="btn btn-corte" onclick="corte()">📊 Corte</button>
+    </div>
+  </div>
+
+  <div class="history" id="historySection">
+    <h3>ÚLTIMAS TRANSACCIONES</h3>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- Modal de entrada -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">—</h2>
+    <div id="clienteRow" style="display:none;">
+      <select id="clienteSelect" onchange="onClienteChange()">
+        <option value="">Seleccionar cliente...</option>
+      </select>
+    </div>
+    <div class="cliente-saldo" id="clienteSaldo"></div>
+    <div id="inputPhase">
+      <input type="text" id="montoDisplay" readonly placeholder="$0.00">
+      <div class="numpad" style="margin-top:10px;">
+        <button class="btn" onclick="numpad('1')">1</button>
+        <button class="btn" onclick="numpad('2')">2</button>
+        <button class="btn" onclick="numpad('3')">3</button>
+        <button class="btn" onclick="numpad('4')">4</button>
+        <button class="btn" onclick="numpad('5')">5</button>
+        <button class="btn" onclick="numpad('6')">6</button>
+        <button class="btn" onclick="numpad('7')">7</button>
+        <button class="btn" onclick="numpad('8')">8</button>
+        <button class="btn" onclick="numpad('9')">9</button>
+        <button class="btn" onclick="numpad('.')">.</button>
+        <button class="btn" onclick="numpad('0')">0</button>
+        <button class="btn" onclick="numpad('⌫')" style="background:#c0392b;">⌫</button>
+      </div>
+      <input type="text" id="notaInput" placeholder="Nota (opcional)" style="font-size:1em; text-align:left; display:none; margin-top:10px;">
+      <div class="modal-buttons" style="margin-top:10px;">
+        <button class="btn btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn btn-confirm" onclick="mostrarConfirm()">Siguiente →</button>
+      </div>
+    </div>
+    <div id="confirmPhase" style="display:none;">
+      <div class="confirm-box" id="confirmBox"></div>
+      <div class="modal-buttons" style="margin-top:10px;">
+        <button class="btn btn-cancel" onclick="volverInput()">← Corregir</button>
+        <button class="btn btn-confirm" onclick="confirmar()">✓ Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report overlay -->
+<div class="report-overlay" id="reportOverlay">
+  <div class="report-box">
+    <pre id="reportContent"></pre>
+    <button class="btn btn-cancel" onclick="cerrarReport()">Cerrar</button>
+  </div>
+</div>
+
+<!-- Ticket -->
+<div class="ticket" id="ticketOverlay">
+  <div>
+    <div class="ticket-paper" id="ticketPaper"></div>
+    <div style="text-align:center; margin-top:12px;">
+      <button class="btn btn-cancel ticket-close" onclick="cerrarTicket()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let currentAction = "";
+let montoStr = "";
+let clientes = {};
+let historial = []; // local history for session
+
+// Reloj
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clock").textContent = now.toLocaleTimeString("es-MX", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Cargar clientes
+function loadClientes() {
+  fetch("/clientes").then(r => r.json()).then(data => { clientes = data; });
+}
+loadClientes();
+
+// Status bar
+function updateStatus() {
+  fetch("/", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action: "status"}) })
+    .then(r => r.json()).then(data => {
+      if (data.ok) {
+        document.getElementById("statCaja").textContent = data.caja || "$0";
+        document.getElementById("statInventario").textContent = data.inventario || "$0";
+        document.getElementById("statCxC").textContent = data.cxc || "$0";
+      }
+    }).catch(() => {});
+}
+updateStatus();
+
+const titulos = {
+  venta_mostrador: "💰 Venta Mostrador",
+  produccion: "🏭 Producción",
+  merma: "🗑️ Merma",
+  venta_mayoreo: "📦 Venta Mayoreo",
+  cobro: "🤝 Cobro Cliente"
+};
+
+const colores = {
+  venta_mostrador: "green",
+  produccion: "",
+  merma: "red",
+  venta_mayoreo: "purple",
+  cobro: "green"
+};
+
+function abrirModal(action) {
+  currentAction = action;
+  montoStr = "";
+  document.getElementById("montoDisplay").value = "";
+  document.getElementById("modalTitle").textContent = titulos[action] || action;
+  document.getElementById("inputPhase").style.display = "";
+  document.getElementById("confirmPhase").style.display = "none";
+
+  const clienteRow = document.getElementById("clienteRow");
+  const clienteSelect = document.getElementById("clienteSelect");
+  const clienteSaldo = document.getElementById("clienteSaldo");
+  const needsCliente = (action === "venta_mayoreo" || action === "cobro");
+  clienteRow.style.display = needsCliente ? "block" : "none";
+  clienteSaldo.style.display = "none";
+
+  if (needsCliente) {
+    clienteSelect.innerHTML = '<option value="">Seleccionar cliente...</option>';
+    for (const [clave, c] of Object.entries(clientes)) {
+      const desc = c.descuento > 0 ? ` (${c.descuento}% desc)` : "";
+      clienteSelect.innerHTML += `<option value="${clave}">${c.nombre}${desc}</option>`;
+    }
+  }
+
+  const notaInput = document.getElementById("notaInput");
+  notaInput.style.display = (action === "produccion" || action === "merma") ? "block" : "none";
+  notaInput.value = "";
+
+  document.getElementById("modalOverlay").classList.add("active");
+}
+
+function cerrarModal() {
+  document.getElementById("modalOverlay").classList.remove("active");
+}
+
+function onClienteChange() {
+  const clave = document.getElementById("clienteSelect").value;
+  const saldoDiv = document.getElementById("clienteSaldo");
+  if (!clave) { saldoDiv.style.display = "none"; return; }
+
+  fetch("/", { method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({action: "saldo_cliente", cliente: clave}) })
+    .then(r => r.json()).then(data => {
+      if (data.ok) {
+        saldoDiv.textContent = `Saldo: ${data.saldo}`;
+        saldoDiv.style.display = "block";
+      }
+    });
+}
+
+function numpad(key) {
+  if (key === "⌫") {
+    montoStr = montoStr.slice(0, -1);
+  } else if (key === "." && montoStr.includes(".")) {
+    return;
+  } else {
+    if (montoStr.includes(".") && montoStr.split(".")[1].length >= 2) return;
+    montoStr += key;
+  }
+  const val = parseFloat(montoStr) || 0;
+  document.getElementById("montoDisplay").value = montoStr ? `$${val.toLocaleString("es-MX", {minimumFractionDigits: montoStr.includes(".") ? montoStr.split(".")[1].length : 0})}` : "";
+}
+
+function mostrarConfirm() {
+  const monto = parseFloat(montoStr) || 0;
+  if (monto <= 0) { toast("Ingresa un monto", true); return; }
+
+  if ((currentAction === "venta_mayoreo" || currentAction === "cobro") && !document.getElementById("clienteSelect").value) {
+    toast("Selecciona un cliente", true); return;
+  }
+
+  let html = `<div class="big">$${monto.toLocaleString("es-MX", {minimumFractionDigits: 2})}</div>`;
+  html += `<div class="detail">${titulos[currentAction]}</div>`;
+
+  if (currentAction === "venta_mayoreo") {
+    const clave = document.getElementById("clienteSelect").value;
+    const c = clientes[clave] || {nombre: clave, descuento: 0};
+    const desc = monto * (c.descuento / 100);
+    html += `<div class="detail">Cliente: ${c.nombre}</div>`;
+    if (desc > 0) {
+      html += `<div class="detail">Descuento ${c.descuento}%: -$${desc.toLocaleString("es-MX", {minimumFractionDigits:2})}</div>`;
+      html += `<div class="detail">A CxC: $${(monto - desc).toLocaleString("es-MX", {minimumFractionDigits:2})}</div>`;
+    }
+  } else if (currentAction === "cobro") {
+    const clave = document.getElementById("clienteSelect").value;
+    const c = clientes[clave] || {nombre: clave};
+    html += `<div class="detail">Cliente: ${c.nombre}</div>`;
+  }
+
+  const nota = document.getElementById("notaInput").value;
+  if (nota) html += `<div class="detail">Nota: ${nota}</div>`;
+
+  document.getElementById("confirmBox").innerHTML = html;
+  document.getElementById("inputPhase").style.display = "none";
+  document.getElementById("confirmPhase").style.display = "";
+}
+
+function volverInput() {
+  document.getElementById("inputPhase").style.display = "";
+  document.getElementById("confirmPhase").style.display = "none";
+}
+
+async function confirmar() {
+  const monto = parseFloat(montoStr) || 0;
+  const body = { action: currentAction, monto };
+
+  if (currentAction === "venta_mayoreo" || currentAction === "cobro") {
+    body.cliente = document.getElementById("clienteSelect").value;
+  }
+  if (currentAction === "produccion" || currentAction === "merma") {
+    body.nota = document.getElementById("notaInput").value;
+  }
+
+  try {
+    const r = await fetch("/", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) });
+    const data = await r.json();
+    if (data.ok) {
+      cerrarModal();
+      updateStatus();
+      addHistory(currentAction, monto, body.cliente, body.nota, data.asiento);
+      showTicket(currentAction, monto, body.cliente, body.nota);
+    }
+    toast(data.msg, !data.ok);
+  } catch (e) {
+    toast("Error de conexión", true);
+  }
+}
+
+function addHistory(action, monto, cliente, nota, asiento) {
+  const now = new Date();
+  const time = now.toLocaleTimeString("es-MX", {hour:"2-digit", minute:"2-digit"});
+  const c = cliente ? (clientes[cliente]?.nombre || cliente) : "";
+  let desc = titulos[action].replace(/<br>/g, " ");
+  if (c) desc += ` — ${c}`;
+  if (nota) desc += ` (${nota})`;
+
+  historial.unshift({ time, desc, monto, action, asiento });
+  if (historial.length > 10) historial.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById("historyList");
+  if (historial.length === 0) { list.innerHTML = '<div style="opacity:0.3;font-size:0.9em;">Sin transacciones</div>'; return; }
+  list.innerHTML = historial.map((h, i) => {
+    const color = colores[h.action] || "";
+    const sign = (h.action === "merma") ? "-" : (h.action === "produccion" ? "" : "+");
+    return `<div class="history-item">
+      <span class="time">${h.time}</span>
+      <span class="desc">${h.desc}</span>
+      <span class="amount ${color}">${sign}$${h.monto.toLocaleString("es-MX", {minimumFractionDigits:2})}</span>
+      <button class="undo-btn" onclick="deshacer(${i})" title="Deshacer">↩</button>
+    </div>`;
+  }).join("");
+}
+renderHistory();
+
+async function deshacer(idx) {
+  const h = historial[idx];
+  if (!h) return;
+  if (!confirm(`¿Deshacer "${h.desc}" por $${h.monto.toFixed(2)}?`)) return;
+
+  try {
+    const r = await fetch("/", { method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ action: "deshacer", asiento: h.asiento }) });
+    const data = await r.json();
+    if (data.ok) {
+      historial.splice(idx, 1);
+      renderHistory();
+      updateStatus();
+    }
+    toast(data.msg, !data.ok);
+  } catch (e) {
+    toast("Error de conexión", true);
+  }
+}
+
+function showTicket(action, monto, cliente, nota) {
+  // Solo ticket para ventas y cobros
+  if (!["venta_mostrador", "venta_mayoreo", "cobro"].includes(action)) return;
+
+  const now = new Date();
+  const fecha = now.toLocaleDateString("es-MX");
+  const hora = now.toLocaleTimeString("es-MX", {hour:"2-digit", minute:"2-digit"});
+  const c = cliente ? (clientes[cliente] || {nombre: cliente, descuento: 0}) : null;
+
+  let html = `<h3>🍞 PANADERÍA</h3><div class="line"></div>`;
+  html += `<div>${fecha} ${hora}</div><div class="line"></div>`;
+  html += `<div style="font-weight:600;">${titulos[action]}</div>`;
+
+  if (action === "venta_mayoreo" && c) {
+    const desc = monto * (c.descuento / 100);
+    html += `<div class="detail">Cliente: ${c.nombre}</div>`;
+    html += `<div class="detail">Subtotal: $${monto.toFixed(2)}</div>`;
+    if (desc > 0) html += `<div class="detail">Desc ${c.descuento}%: -$${desc.toFixed(2)}</div>`;
+    html += `<div class="big">$${(monto - desc).toFixed(2)}</div>`;
+  } else if (action === "cobro" && c) {
+    html += `<div class="detail">Cliente: ${c.nombre}</div>`;
+    html += `<div class="big">$${monto.toFixed(2)}</div>`;
+    html += `<div>ABONO A CUENTA</div>`;
+  } else {
+    html += `<div class="big">$${monto.toFixed(2)}</div>`;
+  }
+
+  html += `<div class="line"></div><div style="font-size:0.8em;">¡Gracias!</div>`;
+
+  document.getElementById("ticketPaper").innerHTML = html;
+  document.getElementById("ticketOverlay").classList.add("active");
+
+  // Auto-cerrar ticket después de 3 segundos
+  setTimeout(() => cerrarTicket(), 3000);
+}
+
+function cerrarTicket() {
+  document.getElementById("ticketOverlay").classList.remove("active");
+}
+
+async function corte() {
+  try {
+    const r = await fetch("/", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action: "corte"}) });
+    const data = await r.json();
+    document.getElementById("reportContent").textContent = data.msg;
+    document.getElementById("reportOverlay").classList.add("active");
+  } catch (e) { toast("Error de conexión", true); }
+}
+
+function cerrarReport() {
+  document.getElementById("reportOverlay").classList.remove("active");
+}
+
+function toast(msg, isError) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = isError ? "error" : "";
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2500);
+}
+</script>
+</body>
+</html>

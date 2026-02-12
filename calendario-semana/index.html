@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Calendario CaSa">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<title>Calendario CaSa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #faf9f7;
+    color: #2a2a2a;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0ddd8;
+  }
+  
+  header h1 {
+    font-weight: 300;
+    font-size: 1.6em;
+    letter-spacing: 0.05em;
+    color: #8a7a60;
+  }
+  
+  header p {
+    font-size: 0.85em;
+    color: #999;
+    margin-top: 6px;
+  }
+  
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 28px;
+    font-size: 0.8em;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  
+  .week-label {
+    font-size: 0.75em;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8a7a60;
+    margin: 24px 0 12px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e8e5e0;
+  }
+  
+  .day-row {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f0eeeb;
+  }
+  
+  .day-row.today {
+    outline: 2px solid #8a7a60;
+    outline-offset: 1px;
+  }
+  
+  .day-label {
+    width: 90px;
+    min-width: 90px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #e8e5e0;
+    font-size: 0.78em;
+  }
+  
+  .day-label .dow {
+    font-weight: 600;
+    font-size: 1.05em;
+    color: #5a4a30;
+  }
+  
+  .day-label .date {
+    color: #999;
+    font-size: 0.85em;
+  }
+  
+  .timeline {
+    flex: 1;
+    display: flex;
+    position: relative;
+    min-height: 44px;
+  }
+  
+  .block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65em;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.95);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 2px 4px;
+    line-height: 1.2;
+    cursor: default;
+    transition: filter 0.15s;
+  }
+  
+  .block:hover {
+    filter: brightness(1.2);
+  }
+  
+  .block .time-label {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    font-size: 0.85em;
+    opacity: 0.5;
+    font-weight: 400;
+  }
+  
+  .block .time-label-end {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 0.85em;
+    opacity: 0.5;
+    font-weight: 400;
+  }
+  
+  /* Block colors */
+  .b-sleep    { background: #ddd8d0; color: #999; }
+  .b-grog     { background: #c9b99a; color: #fff; }
+  .b-work     { background: #3a8a9a; color: #fff; }
+  .b-break    { background: #6ab06a; color: #fff; }
+  .b-design   { background: #d4884a; color: #fff; }
+  .b-family   { background: #4aaa6a; color: #fff; }
+  .b-rec      { background: #9a6ab8; color: #fff; }
+  .b-wind     { background: #c0bab0; color: #777; }
+  
+  .hour-markers {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0 4px 90px;
+    margin-bottom: 2px;
+  }
+  
+  .hour-markers span {
+    font-size: 0.6em;
+    color: #bbb;
+    width: 0;
+    text-align: center;
+  }
+  
+  .now-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e84040;
+    z-index: 10;
+    pointer-events: none;
+  }
+  
+  .wake-marker {
+    position: absolute;
+    bottom: 2px;
+    transform: translateX(-50%);
+    font-size: 0.6em;
+    color: #8a7a60;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 5;
+  }
+  
+  .now-dot {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e84040;
+  }
+  
+  /* Mobile */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .day-label { width: 60px; min-width: 60px; padding: 8px; }
+    .day-label .dow { font-size: 0.9em; }
+    .block { font-size: 0.55em; }
+    .legend { font-size: 0.7em; gap: 10px; }
+    header h1 { font-size: 1.3em; }
+  }
+
+  .day-row.past {
+    opacity: 0.45;
+  }
+  
+  .past-section summary::-webkit-details-marker { display: none; }
+  .past-section[open] summary .arrow { transform: rotate(90deg); }
+  
+  .status-banner {
+    text-align: center;
+    padding: 14px 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 0.9em;
+    font-weight: 400;
+  }
+  .status-banner.available { background: #e8f5e8; color: #3a7a3a; border: 1px solid #c0e0c0; }
+  .status-banner.busy-work { background: #e0f2f5; color: #2a7a8a; border: 1px solid #b0d8e0; }
+  .status-banner.busy-design { background: #fdf0e0; color: #b07030; border: 1px solid #e8d0b0; }
+  .status-banner.sleeping { background: #edebe8; color: #999; border: 1px solid #ddd; }
+  .status-banner.waking { background: #f5f0e0; color: #8a7a50; border: 1px solid #e0d8c0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📆 Calendario CaSa</h1>
+    <p id="subtitle">Febrero 2026</p>
+  </header>
+
+  <div id="status-banner" class="status-banner available"></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3a8a9a"></div>Trabajo (no disponible)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#6ab06a"></div>Comida / descanso</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d4884a"></div>Diseño casa ME125</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4aaa6a"></div>Familia</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#9a6ab8"></div>Recreativo</div>
+  </div>
+
+  <div class="hour-markers" id="hour-markers"></div>
+  <div id="calendar"></div>
+</div>
+
+<script>
+const DAYS_DATA = [
+  // [date, dow, wake_h, wake_m, isWeekend]
+  [12, 'JUE', 9, 13, false],
+  [13, 'VIE', 7, 26, false],
+  [14, 'SÁB', 7, 22, true],
+  [15, 'DOM', 7, 20, true],
+  [16, 'LUN', 6, 58, false],
+  [17, 'MAR', 6, 54, false],
+  [18, 'MIÉ', 6, 44, false],
+  [19, 'JUE', 6, 34, false],
+  [20, 'VIE', 6, 32, false],
+  [21, 'SÁB', 6, 30, true],
+  [22, 'DOM', 6, 30, true],
+  [23, 'LUN', 6, 28, false],
+  [24, 'MAR', 6, 26, false],
+  [25, 'MIÉ', 6, 18, false],
+  [26, 'JUE', 6, 16, false],
+  [27, 'VIE', 6, 14, false],
+  [28, 'SÁB', 6, 30, true],
+];
+
+// Display range: 6:00 to 23:00 (17 hours)
+const RANGE_START = 6 * 60; // 6:00
+const RANGE_END = 23 * 60;  // 23:00
+const RANGE_TOTAL = RANGE_END - RANGE_START;
+
+function minsToday(h, m) { return h * 60 + m; }
+
+function fmt(h, m) {
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function getBlocks(day) {
+  const [date, dow, wh, wm, isWE] = day;
+  const wake = minsToday(wh, wm);
+  const grogEnd = wake + 90;
+  
+  if (isWE) {
+    const workEnd = grogEnd + 240;
+    const famEnd = workEnd + 240;
+    const desEnd = famEnd + 240;
+    const recEnd = desEnd + 240;
+    return [
+      { start: RANGE_START, end: wake, cls: 'b-sleep', label: '💤' },
+      { start: wake, end: grogEnd, cls: 'b-grog', label: 'Despertar' },
+      { start: grogEnd, end: workEnd, cls: 'b-work', label: 'Trabajo', time: true },
+      { start: workEnd, end: famEnd, cls: 'b-family', label: 'Familia', time: true },
+      { start: famEnd, end: desEnd, cls: 'b-design', label: 'Diseño 🏠', time: true },
+      { start: desEnd, end: Math.min(recEnd, RANGE_END), cls: 'b-rec', label: 'Recreativo', time: true },
+    ];
+  } else {
+    const workEnd = grogEnd + 360;
+    const breakEnd = workEnd + 120;
+    const designEnd = breakEnd + 360;
+    return [
+      { start: RANGE_START, end: wake, cls: 'b-sleep', label: '💤' },
+      { start: wake, end: grogEnd, cls: 'b-grog', label: 'Despertar' },
+      { start: grogEnd, end: workEnd, cls: 'b-work', label: 'Trabajo', time: true },
+      { start: workEnd, end: breakEnd, cls: 'b-break', label: 'Comida / familia', time: true },
+      { start: breakEnd, end: Math.min(designEnd, RANGE_END), cls: 'b-design', label: 'Diseño 🏠', time: true },
+    ];
+  }
+}
+
+function getCurrentStatus() {
+  const now = new Date();
+  const today = now.getDate();
+  const month = now.getMonth() + 1;
+  if (month !== 2) return null;
+  
+  const dayData = DAYS_DATA.find(d => d[0] === today);
+  if (!dayData) return null;
+  
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const blocks = getBlocks(dayData);
+  
+  for (const b of blocks) {
+    if (nowMins >= b.start && nowMins < b.end) {
+      return b;
+    }
+  }
+  return null;
+}
+
+function render() {
+  const cal = document.getElementById('calendar');
+  const now = new Date();
+  const todayDate = now.getDate();
+  const todayMonth = now.getMonth() + 1;
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  
+  // Hour markers
+  const hm = document.getElementById('hour-markers');
+  let hmHtml = '';
+  for (let h = 5; h <= 23; h++) {
+    hmHtml += `<span>${h}:00</span>`;
+  }
+  hm.innerHTML = hmHtml;
+  
+  // Split days: today, future, past
+  const todayData = DAYS_DATA.filter(d => todayMonth === 2 && d[0] === todayDate);
+  const futureDays = DAYS_DATA.filter(d => todayMonth !== 2 || d[0] > todayDate);
+  const pastDays = DAYS_DATA.filter(d => todayMonth === 2 && d[0] < todayDate).reverse(); // most recent first
+  
+  let html = '';
+  
+  function renderDay(day, isPast) {
+    const [date, dow, wh, wm, isWE] = day;
+    const isToday = todayMonth === 2 && todayDate === date;
+    html += `<div class="day-row ${isToday ? 'today' : ''} ${isPast ? 'past' : ''}">`;
+    html += `<div class="day-label"><span class="dow">${dow}</span><span class="date">${date} feb</span></div>`;
+    html += `<div class="timeline">`;
+    
+    const blocks = getBlocks(day);
+    for (const b of blocks) {
+      const clampStart = Math.max(b.start, RANGE_START);
+      const clampEnd = Math.min(b.end, RANGE_END);
+      if (clampEnd <= clampStart) continue;
+      
+      const left = ((clampStart - RANGE_START) / RANGE_TOTAL) * 100;
+      const width = ((clampEnd - clampStart) / RANGE_TOTAL) * 100;
+      
+      const startH = Math.floor(clampStart / 60);
+      const startM = clampStart % 60;
+      const endH = Math.floor(clampEnd / 60);
+      const endM = clampEnd % 60;
+      
+      const timeStr = b.time ? `<span class="time-label">${fmt(startH,startM)}</span><span class="time-label-end">${fmt(endH,endM)}</span>` : '';
+      
+      html += `<div class="block ${b.cls}" style="position:absolute;left:${left}%;width:${width}%" title="${b.label}: ${fmt(startH,startM)} - ${fmt(endH,endM)}">${width > 8 ? b.label : ''}${width > 12 ? timeStr : ''}</div>`;
+    
+    // Wake time marker
+    const wakeMin = minsToday(wh, wm);
+    if (wakeMin >= RANGE_START && wakeMin <= RANGE_END) {
+      const wakeLeft = ((wakeMin - RANGE_START) / RANGE_TOTAL) * 100;
+      html += `<div class="wake-marker" style="left:${wakeLeft}%">⏰ ${fmt(wh,wm)}</div>`;
+    }
+    }
+    
+    // Now line
+    if (isToday && nowMins >= RANGE_START && nowMins <= RANGE_END) {
+      const nowLeft = ((nowMins - RANGE_START) / RANGE_TOTAL) * 100;
+      html += `<div class="now-line" style="left:${nowLeft}%"><div class="now-dot"></div></div>`;
+    }
+    
+    html += `</div></div>`;
+  }
+  
+  // Helper: get week label for a date (weeks Sun-Sat)
+  function getWeekLabel(date) {
+    return date <= 14 ? 'Esta semana' : (date <= 21 ? 'Próxima semana' : 'Semana del 22');
+  }
+  
+  function renderWithWeeks(days, isPast) {
+    let lastWeek = '';
+    for (const day of days) {
+      const wl = getWeekLabel(day[0]);
+      if (wl !== lastWeek) {
+        if (lastWeek) html += '<div style="height:8px"></div>';
+        html += `<div class="week-label">${wl}</div>`;
+        lastWeek = wl;
+      }
+      renderDay(day, isPast);
+    }
+  }
+  
+  // Render: today first
+  for (const day of todayData) {
+    html += `<div class="week-label">Hoy</div>`;
+    renderDay(day, false);
+  }
+  
+  // Future days with week labels
+  if (futureDays.length) {
+    html += '<div style="height:8px"></div>';
+    renderWithWeeks(futureDays, false);
+  }
+  
+  // Past days, most recent first, collapsed, with week labels
+  if (pastDays.length) {
+    html += '<div style="height:16px"></div>';
+    html += '<details class="past-section"><summary class="week-label" style="cursor:pointer;user-select:none;">Días anteriores ▸</summary>';
+    html += '<div style="margin-top:8px">';
+    renderWithWeeks(pastDays, true);
+    html += '</div></details>';
+  }
+  
+  cal.innerHTML = html;
+  
+  // Status banner
+  const banner = document.getElementById('status-banner');
+  const currentBlock = getCurrentStatus();
+  if (currentBlock) {
+    const endH = Math.floor(currentBlock.end / 60);
+    const endM = currentBlock.end % 60;
+    
+    const messages = {
+      'b-sleep': ['sleeping', '😴 Durmiendo — no molestar'],
+      'b-grog': ['waking', '☕ Despertando — disponible para cosas rápidas'],
+      'b-work': ['busy-work', `💼 Trabajando — no disponible hasta las ${fmt(endH,endM)}`],
+      'b-break': ['available', '🍽️ Comida y familia — disponible'],
+      'b-design': ['busy-design', `🏠 Diseño ME125 — trabajando juntos hasta las ${fmt(endH,endM)}`],
+      'b-family': ['available', '👨‍👩‍👧 Tiempo de familia — disponible'],
+      'b-rec': ['available', '🎮 Tiempo recreativo — disponible'],
+    };
+    
+    const [cls, msg] = messages[currentBlock.cls] || ['available', 'Disponible'];
+    banner.className = `status-banner ${cls}`;
+    banner.innerHTML = msg;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+render();
+// Update every minute
+setInterval(render, 60000);
+</script>
+
+</body>
+</html>

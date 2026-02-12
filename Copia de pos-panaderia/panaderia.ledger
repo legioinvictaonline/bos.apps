@@ -1,0 +1,101 @@
+; POS Panadería — Ledger principal
+
+2026-02-10 Producción - 100 panes de $10 (19:18)
+    activos:inventario:pan        $1,000.00
+    gastos:producción            $-1,000.00
+
+2026-02-10 Venta mostrador (19:18)
+    activos:caja                  $150.00
+    activos:inventario:pan       $-150.00
+
+2026-02-10 Venta mayoreo - Don Pepe (19:18)
+    activos:cuentas por cobrar:don pepe  $450.00
+    gastos:descuentos comerciales  $50.00
+    activos:inventario:pan       $-500.00
+
+2026-02-10 Venta mostrador (19:19)
+    activos:caja                  $100.00
+    activos:inventario:pan       $-100.00
+
+2026-02-10 Producción (19:19)
+    activos:inventario:pan        $300.00
+    gastos:producción            $-300.00
+
+2026-02-10 Venta mostrador (19:22)
+    activos:caja                  $120.50
+    activos:inventario:pan       $-120.50
+
+2026-02-10 Venta mayoreo - Don Pepe (19:22)
+    activos:cuentas por cobrar:don pepe  $900.00
+    gastos:descuentos comerciales  $100.00
+    activos:inventario:pan       $-1,000.00
+
+2026-02-10 Venta mostrador (19:23)
+    activos:caja                  $12.50
+    activos:inventario:pan       $-12.50
+
+2026-02-10 Cobro - Don Pepe (19:27)
+    activos:caja                  $600.00
+    activos:cuentas por cobrar:don pepe  $-600.00
+
+2026-02-10 Cobro - Don Pepe (19:28)
+    activos:caja                  $200.00
+    activos:cuentas por cobrar:don pepe  $-200.00
+
+2026-02-10 Producción (19:28)
+    activos:inventario:pan        $600.00
+    gastos:producción            $-600.00
+
+2026-02-10 Venta mostrador (19:49)
+    activos:caja                  $120.00
+    activos:inventario:pan       $-120.00
+
+2026-02-10 Venta mayoreo - El Gringo (19:50)
+    activos:cuentas por cobrar:el gringo  $6,256.00
+    gastos:descuentos comerciales  $544.00
+    activos:inventario:pan       $-6,800.00
+
+2026-02-10 Producción - bolillo (19:51)
+    activos:inventario:pan        $648.00
+    gastos:producción            $-648.00
+
+2026-02-10 Venta mayoreo - Don Pepe (19:52)
+    activos:cuentas por cobrar:don pepe  $900.00
+    gastos:descuentos comerciales  $100.00
+    activos:inventario:pan       $-1,000.00
+
+2026-02-10 Cobro - El Gringo (19:52)
+    activos:caja                  $100.00
+    activos:cuentas por cobrar:el gringo  $-100.00
+
+2026-02-10 Venta mostrador (19:54)
+    activos:caja                  $360.00
+    activos:inventario:pan       $-360.00
+
+2026-02-10 Merma (19:55)
+    gastos:mermas                 $2,000.00
+    activos:inventario:pan       $-2,000.00
+
+2026-02-10 Producción (19:56)
+    activos:inventario:pan        $8,000.00
+    gastos:producción            $-8,000.00
+
+2026-02-10 Producción - carro bolillo (19:57)
+    activos:inventario:pan        $640.00
+    gastos:producción            $-640.00
+
+2026-02-10 Producción - 8 pasteles (19:58)
+    activos:inventario:pan        $2,880.00
+    gastos:producción            $-2,880.00
+
+2026-02-10 Venta mostrador (20:02)
+    activos:caja                  $360.00
+    activos:inventario:pan       $-360.00
+
+2026-02-10 Producción - carro bizcocho (20:04)
+    activos:inventario:pan        $1,728.00
+    gastos:producción            $-1,728.00
+
+2026-02-10 Producción - carro repostería (20:04)
+    activos:inventario:pan        $2,592.00
+    gastos:producción            $-2,592.00

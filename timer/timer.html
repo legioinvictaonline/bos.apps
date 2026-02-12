@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Timer">
+<link rel="apple-touch-icon" href="timer-icon.png">
+<title>Time Timer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
+    user-select: none;
+  }
+  .container { text-align: center; }
+  canvas { cursor: pointer; }
+  .time-display {
+    font-size: 4rem;
+    font-weight: 200;
+    letter-spacing: 0.1em;
+    margin-top: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+  .controls {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  button {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #555; }
+  button.active { background: #e74c3c; }
+  .presets {
+    margin-top: 20px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .presets button {
+    background: #2a2a2a;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+  .presets button:hover { background: #444; }
+  .input-row {
+    margin-top: 15px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+  }
+  input[type="number"] {
+    background: #2a2a2a;
+    border: 1px solid #555;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 80px;
+    text-align: center;
+  }
+  input:focus { outline: none; border-color: #e74c3c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <canvas id="timer" width="400" height="400"></canvas>
+  <div class="time-display" id="display">20:00</div>
+  <div class="controls">
+    <button id="startBtn" onclick="toggleTimer()">Start</button>
+    <button onclick="resetTimer()">Reset</button>
+  </div>
+  <div class="presets">
+    <button onclick="setMinutes(5)">5m</button>
+    <button onclick="setMinutes(10)">10m</button>
+    <button onclick="setMinutes(15)">15m</button>
+    <button onclick="setMinutes(20)">20m</button>
+    <button onclick="setMinutes(25)">25m</button>
+    <button onclick="setMinutes(30)">30m</button>
+    <button onclick="setMinutes(45)">45m</button>
+    <button onclick="setMinutes(60)">60m</button>
+  </div>
+  <div class="input-row">
+    <input type="number" id="customMin" min="1" max="180" placeholder="min" />
+    <button onclick="setMinutes(+document.getElementById('customMin').value)">Set</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('timer');
+const ctx = canvas.getContext('2d');
+const display = document.getElementById('display');
+const startBtn = document.getElementById('startBtn');
+
+let totalSeconds = 20 * 60;
+let remainingSeconds = totalSeconds;
+let running = false;
+let interval = null;
+const timerColor = '#e74c3c';
+const bgRing = '#333';
+
+function draw() {
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2, r = 160;
+  const lineWidth = 40;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // Background ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = bgRing;
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+  
+  // Remaining arc
+  if (remainingSeconds > 0) {
+    const fraction = remainingSeconds / totalSeconds;
+    const startAngle = -Math.PI / 2;
+    const endAngle = startAngle + fraction * Math.PI * 2;
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.strokeStyle = timerColor;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+  }
+  
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - lineWidth / 2 - 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#222';
+  ctx.fill();
+}
+
+function updateDisplay() {
+  const m = Math.floor(remainingSeconds / 60);
+  const s = remainingSeconds % 60;
+  display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  document.title = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} — Timer`;
+}
+
+function tick() {
+  if (remainingSeconds <= 0) {
+    running = false;
+    clearInterval(interval);
+    startBtn.textContent = 'Start';
+    startBtn.classList.remove('active');
+    document.title = '¡Tiempo! ⏰';
+    // Flash + sound
+    document.body.style.background = '#e74c3c';
+    setTimeout(() => document.body.style.background = '#1a1a1a', 200);
+    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbsGczGj6LvNLajFUwQH+01NuijV1FW3mfwM2zk2hOT2uSsb+1lGlRTmuVqbWxkmZNS2eTqbGrjGFIS2aRpauoiV5FS2WQo6ekhFtDS2SOoKSgf1hBS2KMnqGcfFVAS2CKm56ZeFNASl6ImZuWdVFASlyGl5iTclBASVqElZaQb05ASFiCk5ONbE1AR1aAkZGKaUtARlR+j4+IZklARVJ8jY2FZEdAQ1B6i4uCYUVAQk54iYl/XkNAQUx2h4d8W0FAQE10hYV6WEFAP0tyhIN3VkBAPklwgoF0VD9APUdugH9yUT9AO0Vue35wTz5AOkRsfnxtTT5AOEJqfHprSz1ANkBoe3hoST1ANTA=').play(); } catch(e) {}
+    return;
+  }
+  remainingSeconds--;
+  draw();
+  updateDisplay();
+}
+
+function toggleTimer() {
+  if (running) {
+    running = false;
+    clearInterval(interval);
+    startBtn.textContent = 'Start';
+    startBtn.classList.remove('active');
+  } else {
+    if (remainingSeconds <= 0) { remainingSeconds = totalSeconds; }
+    running = true;
+    interval = setInterval(tick, 1000);
+    startBtn.textContent = 'Pause';
+    startBtn.classList.add('active');
+  }
+}
+
+function resetTimer() {
+  running = false;
+  clearInterval(interval);
+  remainingSeconds = totalSeconds;
+  startBtn.textContent = 'Start';
+  startBtn.classList.remove('active');
+  document.body.style.background = '#1a1a1a';
+  draw();
+  updateDisplay();
+}
+
+function setMinutes(m) {
+  if (m < 1 || isNaN(m)) return;
+  running = false;
+  clearInterval(interval);
+  totalSeconds = m * 60;
+  remainingSeconds = totalSeconds;
+  startBtn.textContent = 'Start';
+  startBtn.classList.remove('active');
+  draw();
+  updateDisplay();
+}
+
+// Keyboard: space = start/pause, r = reset
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
+  if (e.code === 'KeyR') resetTimer();
+});
+
+draw();
+updateDisplay();
+</script>
+</body>
+</html>
