@@ -123,8 +123,8 @@ function serveIndex(res) {
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1a1a2e">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="manifest" href="/timer/manifest.json">
+  <link rel="apple-touch-icon" href="/timer/icon-192.png">
   <title>Herramientas</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -146,11 +146,12 @@ function serveIndex(res) {
     <div class="grid">
       <a href="/timer"><span class="emoji">⏱</span>Timer</a>
       <a href="/pos"><span class="emoji">🥖</span>POS Panadería</a>
+      <a href="/calendario"><span class="emoji">📅</span>Calendario</a>
       <a href="/taskwarrior"><span class="emoji">✅</span>Taskwarrior</a>
       <a href="http://192.168.100.52:4533"><span class="emoji">🎵</span>Navidrome</a>
     </div>
   </div>
-  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/timer/sw.js');</script>
 </body>
 </html>`;
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -407,9 +408,10 @@ const server = http.createServer((req, res) => {
 
   // App routes
   if (p === '/') return serveIndex(res);
-  if (p === '/timer') return serveFile(res, path.join(DIR, 'timer.html'));
+  if (p === '/timer') return serveFile(res, path.join(DIR, 'timer/timer.html'));
   if (p === '/pos' || p === '/pos/') return serveFile(res, path.join(DIR, 'pos-panaderia/index.html'));
   if (p.startsWith('/pos/')) return serveFile(res, path.join(DIR, 'pos-panaderia', p.slice(5)));
+  if (p === '/calendario' || p === '/calendario/') return serveFile(res, path.join(DIR, 'calendario-semana/index.html'));
   if (p === '/taskwarrior' || p === '/taskwarrior/') return serveTaskwarriorUI(res);
 
   // Static files
