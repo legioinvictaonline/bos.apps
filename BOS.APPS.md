@@ -49,6 +49,27 @@ categories: "[[BOS]]"
 - Git para versionar: `git init` en esta carpeta
 - Archivos estáticos no necesitan servidor propio — server.js los sirve
 
+### 🎵 Navidrome
+- **Carpeta:** `navidrome/`
+- **Puerto:** 4533
+- **Qué es:** Servidor de música personal. Subsonic API.
+- **Stack:** Navidrome + Subsonic API
+- **Operación:** `navidrome/operacion/` — 3 bibliotecas (personal, playlists, mixes)
+- **Nota:** `navidrome/README.md`
+
+## Convención: carpeta `operacion/`
+
+Cada app puede tener una subcarpeta `operacion/` con la documentación de **cómo se opera** — flujos, datos, decisiones del día a día. Separada del código/desarrollo.
+
+```
+app/
+├── README.md          # qué es, stack, cómo correr
+├── operacion/         # cómo la opero yo
+│   └── README.md
+├── index.html         # código
+└── ...
+```
+
 ## Apps futuras
 
 <!-- Agregar aquí conforme se creen nuevas apps -->
