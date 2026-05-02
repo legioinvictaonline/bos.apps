@@ -1,29 +1,19 @@
-# Obra en vivo
+# Hora de obra
 
-Dashboard estático para ver en una sola pantalla las cámaras/streams de obra de:
+Pantalla estática con dos relojes grandes para ver en tiempo real la hora de las obras de:
 
-- Ciudad de México
-- San José del Cabo
+- Ciudad de México — `America/Mexico_City`
+- San José del Cabo — `America/Mazatlan`
 
 ## Ruta
 
 - Local/server: `http://localhost:8080/obra`
 - GitHub Pages: `/obra-live/`
 
-## Uso
+## Stack
 
-Pega en cada tarjeta la URL pública o accesible desde el dispositivo:
-
-- página/iframe del proveedor
-- imagen o MJPEG
-- video MP4/HLS
-
-La configuración se guarda en `localStorage` del navegador. También puede compartirse con parámetros:
-
-```text
-?cdmx=https://...&sjc=https://...
-```
+HTML + CSS + JS vanilla. Sin dependencias.
 
 ## Nota
 
-Si la cámara está en red privada, el sitio público puede abrir, pero el video solo se verá desde la misma red o VPN.
+Los Cabos usa hora de Baja California Sur (`America/Mazatlan`). Si se necesita otro huso horario, cambiar el atributo `data-tz` en `index.html`.
