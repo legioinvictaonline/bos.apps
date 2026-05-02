@@ -148,7 +148,7 @@ function serveIndex(res) {
       <a href="/timer"><span class="emoji">⏱</span>Timer</a>
       <a href="/pos"><span class="emoji">🥖</span>POS Panadería</a>
       <a href="/calendario"><span class="emoji">📅</span>Calendario</a>
-      <a href="/obra"><span class="emoji">🏗️</span>Hora de obra</a>
+      <a href="/obra"><span class="emoji">🏗️</span>Hora en vivo</a>
       <a href="/taskwarrior"><span class="emoji">✅</span>Taskwarrior</a>
       <a href="http://192.168.100.52:4533"><span class="emoji">🎵</span>Navidrome</a>
     </div>

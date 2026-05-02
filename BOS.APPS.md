@@ -33,10 +33,10 @@ categories: "[[BOS]]"
 - **Stack:** HTML + CSS + JS vanilla
 - **Nota:** `calendario-semana/README.md`
 
-### 🏗️ Hora de obra
+### 🕰️ Hora en vivo
 - **Carpeta:** `obra-live/`
 - **Puerto:** estático (servido por `server.js` en :8080/obra)
-- **Qué es:** Pantalla con dos relojes grandes para ver en tiempo real la hora de obra en Ciudad de México y San José del Cabo.
+- **Qué es:** Pantalla con dos relojes grandes para ver en tiempo real la hora de Ciudad de México y San José del Cabo.
 - **Stack:** HTML + CSS + JS vanilla, cero dependencias
 - **Nota:** `obra-live/README.md`
 

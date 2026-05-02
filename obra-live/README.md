@@ -1,6 +1,6 @@
-# Hora de obra
+# Hora en vivo
 
-Pantalla estática con dos relojes grandes para ver en tiempo real la hora de las obras de:
+Pantalla estática con dos relojes grandes para ver en tiempo real la hora de:
 
 - Ciudad de México — `America/Mexico_City`
 - San José del Cabo — `America/Mazatlan`
