@@ -33,11 +33,18 @@ categories: "[[BOS]]"
 - **Stack:** HTML + CSS + JS vanilla
 - **Nota:** `calendario-semana/README.md`
 
+### 🏗️ Obra en vivo
+- **Carpeta:** `obra-live/`
+- **Puerto:** estático (servido por `server.js` en :8080/obra)
+- **Qué es:** Dashboard para ver en tiempo real la obra de Ciudad de México y San José del Cabo en dos tarjetas configurables.
+- **Stack:** HTML + CSS + JS vanilla, cero dependencias
+- **Nota:** `obra-live/README.md`
+
 ## Servidor Unificado
 
 - **Archivo:** `server.js`
 - **Puerto:** 8080
-- **Rutas:** `/timer`, `/pos`, `/taskwarrior`, `/api/tasks`
+- **Rutas:** `/timer`, `/pos`, `/calendario`, `/obra`, `/taskwarrior`, `/api/tasks`
 - **Cómo correr:** `node server.js` desde `archivos/herramientas/`
 - **Nota:** `server.md`
 

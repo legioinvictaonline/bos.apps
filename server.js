@@ -10,6 +10,7 @@
  *   /                    → índice de herramientas
  *   /timer               → timer.html
  *   /pos                 → pos-panaderia/index.html
+ *   /obra                → obra-live/index.html
  *   /taskwarrior         → taskwarrior web UI
  *   /api/tasks           → API de Taskwarrior (GET/POST/PUT/DELETE)
  */
@@ -147,6 +148,7 @@ function serveIndex(res) {
       <a href="/timer"><span class="emoji">⏱</span>Timer</a>
       <a href="/pos"><span class="emoji">🥖</span>POS Panadería</a>
       <a href="/calendario"><span class="emoji">📅</span>Calendario</a>
+      <a href="/obra"><span class="emoji">🏗️</span>Obra en vivo</a>
       <a href="/taskwarrior"><span class="emoji">✅</span>Taskwarrior</a>
       <a href="http://192.168.100.52:4533"><span class="emoji">🎵</span>Navidrome</a>
     </div>
@@ -411,7 +413,9 @@ const server = http.createServer((req, res) => {
   if (p === '/timer') return serveFile(res, path.join(DIR, 'timer/timer.html'));
   if (p === '/pos' || p === '/pos/') return serveFile(res, path.join(DIR, 'pos-panaderia/index.html'));
   if (p.startsWith('/pos/')) return serveFile(res, path.join(DIR, 'pos-panaderia', p.slice(5)));
-  if (p === '/calendario' || p === '/calendario/') return serveFile(res, path.join(DIR, 'calendario-semana/index.html'));
+  if (p === '/calendario' || p === '/calendario/') return serveFile(res, path.join(DIR, 'calendario.casa/index.html'));
+  if (p === '/obra' || p === '/obra/') return serveFile(res, path.join(DIR, 'obra-live/index.html'));
+  if (p.startsWith('/obra/')) return serveFile(res, path.join(DIR, 'obra-live', p.slice(6)));
   if (p === '/taskwarrior' || p === '/taskwarrior/') return serveTaskwarriorUI(res);
 
   // Static files

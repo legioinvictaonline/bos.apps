@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Obra en vivo — Legio Invicta</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --panel-2: #17213f;
+      --ink: #f4f0e8;
+      --muted: #9aa4bd;
+      --accent: #d6a84f;
+      --good: #73d99f;
+      --bad: #f07676;
+      --line: rgba(255,255,255,.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(214,168,79,.18), transparent 32rem),
+        radial-gradient(circle at bottom right, rgba(72,104,190,.18), transparent 34rem),
+        var(--bg);
+      color: var(--ink);
+    }
+    header {
+      padding: 22px clamp(16px, 3vw, 34px) 12px;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--line);
+    }
+    h1 { margin: 0; font-size: clamp(1.35rem, 3vw, 2.2rem); letter-spacing: -.03em; }
+    .subtitle { color: var(--muted); margin-top: 6px; font-size: .95rem; }
+    .clock { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.45; }
+    main { padding: clamp(14px, 2.5vw, 28px); max-width: 1500px; margin: 0 auto; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+      background: rgba(18,26,51,.72); border: 1px solid var(--line); border-radius: 18px;
+      padding: 12px; margin-bottom: 18px; backdrop-filter: blur(10px);
+    }
+    .toolbar small { color: var(--muted); }
+    button, .btn {
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); border-radius: 12px;
+      padding: 10px 13px; font-weight: 650; cursor: pointer; text-decoration: none; font-size: .92rem;
+    }
+    button:hover, .btn:hover { border-color: rgba(214,168,79,.55); transform: translateY(-1px); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } header { flex-direction: column; } .clock { text-align: left; } }
+    .card {
+      background: rgba(18,26,51,.88); border: 1px solid var(--line); border-radius: 22px; overflow: hidden;
+      box-shadow: 0 22px 80px rgba(0,0,0,.28);
+    }
+    .card-head { padding: 16px 16px 12px; display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+    .city { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
+    .meta { color: var(--muted); font-size: .86rem; margin-top: 3px; }
+    .status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: .82rem; white-space: nowrap; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 0 4px rgba(240,118,118,.12); }
+    .dot.live { background: var(--good); box-shadow: 0 0 0 4px rgba(115,217,159,.12); }
+    .viewer { background: #05070d; aspect-ratio: 16 / 9; display: grid; place-items: center; position: relative; }
+    .viewer iframe, .viewer video, .viewer img { width: 100%; height: 100%; border: 0; object-fit: contain; background: #05070d; }
+    .empty { max-width: 420px; padding: 20px; text-align: center; color: var(--muted); }
+    .empty strong { color: var(--ink); display: block; margin-bottom: 8px; }
+    .config { border-top: 1px solid var(--line); padding: 14px 16px 16px; display: grid; gap: 10px; }
+    label { color: var(--muted); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--line); background: rgba(5,7,13,.55); color: var(--ink);
+      border-radius: 12px; padding: 10px 12px; font: inherit;
+    }
+    textarea { min-height: 58px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 155px; gap: 10px; }
+    @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+    .hint { color: var(--muted); font-size: .82rem; line-height: 1.45; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill { color: var(--accent); border: 1px solid rgba(214,168,79,.32); background: rgba(214,168,79,.08); padding: 4px 8px; border-radius: 999px; font-size: .75rem; }
+    footer { padding: 12px clamp(16px, 3vw, 34px) 28px; color: var(--muted); font-size: .8rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Obra en vivo</h1>
+      <div class="subtitle">Legio Invicta · Ciudad de México + San José del Cabo</div>
+    </div>
+    <div class="clock">
+      <div id="now">—</div>
+      <div><span class="pill">tiempo real</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="toolbar">
+      <small>Configura cada tarjeta con una URL pública o accesible desde este dispositivo: iframe, imagen/MJPEG, video MP4/HLS o página del proveedor.</small>
+      <div class="actions">
+        <button id="refreshAll">Refrescar</button>
+        <button id="copyLink">Copiar link con configuración</button>
+        <button id="resetAll">Limpiar</button>
+      </div>
+    </section>
+
+    <section class="grid" id="grid"></section>
+  </main>
+
+  <footer>
+    Si la cámara está en red privada, la página pública puede cargar pero el video solo se verá desde la misma red/VPN. Los links se guardan en este navegador.
+  </footer>
+
+  <template id="cardTemplate">
+    <article class="card">
+      <div class="card-head">
+        <div>
+          <div class="city"></div>
+          <div class="meta"></div>
+        </div>
+        <div class="status"><span class="dot"></span><span class="statusText">sin fuente</span></div>
+      </div>
+      <div class="viewer"></div>
+      <div class="config">
+        <div class="row">
+          <div>
+            <label>URL de cámara / página</label>
+            <input class="url" placeholder="https://..." />
+          </div>
+          <div>
+            <label>Tipo</label>
+            <select class="type">
+              <option value="auto">Auto</option>
+              <option value="iframe">Página / iframe</option>
+              <option value="image">Imagen o MJPEG</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Notas</label>
+          <textarea class="notes" placeholder="Ubicación, cámara, responsable, etc."></textarea>
+        </div>
+        <div class="actions">
+          <button class="save">Guardar</button>
+          <button class="open">Abrir fuente</button>
+          <button class="clear">Limpiar tarjeta</button>
+        </div>
+        <div class="hint">Tip: también acepta parámetros en el URL: <code>?cdmx=https://...&sjc=https://...</code></div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const defaults = [
+      { id: 'cdmx', name: 'Ciudad de México', meta: 'Obra CDMX', url: '', type: 'auto', notes: '' },
+      { id: 'sjc', name: 'San José del Cabo', meta: 'Obra SJC', url: '', type: 'auto', notes: '' }
+    ];
+    const qs = new URLSearchParams(location.search);
+
+    function loadConfig(id) {
+      const stored = JSON.parse(localStorage.getItem('obra-live:' + id) || '{}');
+      const fromQuery = qs.get(id);
+      return { ...stored, ...(fromQuery ? { url: fromQuery } : {}) };
+    }
+    function saveConfig(id, data) { localStorage.setItem('obra-live:' + id, JSON.stringify(data)); }
+    function inferType(url, selected) {
+      if (selected && selected !== 'auto') return selected;
+      const u = url.toLowerCase().split('?')[0];
+      if (u.match(/\.(jpg|jpeg|png|gif|webp|mjpg|mjpeg)$/)) return 'image';
+      if (u.match(/\.(mp4|webm|ogg|m3u8)$/)) return 'video';
+      return 'iframe';
+    }
+    function renderViewer(card, data) {
+      const viewer = card.querySelector('.viewer');
+      const dot = card.querySelector('.dot');
+      const status = card.querySelector('.statusText');
+      viewer.innerHTML = '';
+      if (!data.url) {
+        dot.classList.remove('live'); status.textContent = 'sin fuente';
+        viewer.innerHTML = '<div class="empty"><strong>Sin cámara configurada</strong>Pega aquí la URL de la cámara, stream o página de monitoreo de esta obra.</div>';
+        return;
+      }
+      const type = inferType(data.url, data.type);
+      dot.classList.add('live'); status.textContent = 'fuente cargada';
+      if (type === 'image') {
+        const img = document.createElement('img');
+        img.alt = data.name || 'obra';
+        img.src = data.url + (data.url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+        img.onerror = () => { dot.classList.remove('live'); status.textContent = 'error al cargar'; };
+        viewer.appendChild(img);
+        card._refresh = () => img.src = data.url + (data.url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+      } else if (type === 'video') {
+        const video = document.createElement('video');
+        video.src = data.url; video.controls = true; video.autoplay = true; video.muted = true; video.playsInline = true;
+        video.onerror = () => { dot.classList.remove('live'); status.textContent = 'error al cargar'; };
+        viewer.appendChild(video);
+        card._refresh = () => { video.load(); video.play().catch(()=>{}); };
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = data.url; iframe.allow = 'autoplay; fullscreen; camera'; iframe.referrerPolicy = 'no-referrer-when-downgrade';
+        iframe.onerror = () => { dot.classList.remove('live'); status.textContent = 'error al cargar'; };
+        viewer.appendChild(iframe);
+        card._refresh = () => iframe.src = data.url;
+      }
+    }
+    function makeCard(base) {
+      const data = { ...base, ...loadConfig(base.id) };
+      const node = document.getElementById('cardTemplate').content.cloneNode(true);
+      const card = node.querySelector('.card');
+      card.dataset.id = base.id;
+      card.querySelector('.city').textContent = base.name;
+      card.querySelector('.meta').textContent = base.meta;
+      const url = card.querySelector('.url');
+      const type = card.querySelector('.type');
+      const notes = card.querySelector('.notes');
+      url.value = data.url || ''; type.value = data.type || 'auto'; notes.value = data.notes || '';
+      const current = () => ({ url: url.value.trim(), type: type.value, notes: notes.value.trim() });
+      card.querySelector('.save').onclick = () => { const d = current(); saveConfig(base.id, d); renderViewer(card, { ...base, ...d }); };
+      card.querySelector('.open').onclick = () => { if (url.value.trim()) window.open(url.value.trim(), '_blank'); };
+      card.querySelector('.clear').onclick = () => { url.value=''; type.value='auto'; notes.value=''; saveConfig(base.id, current()); renderViewer(card, base); };
+      url.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('.save').click(); });
+      renderViewer(card, data);
+      return node;
+    }
+    const grid = document.getElementById('grid');
+    defaults.forEach(d => grid.appendChild(makeCard(d)));
+    document.getElementById('refreshAll').onclick = () => document.querySelectorAll('.card').forEach(c => c._refresh && c._refresh());
+    document.getElementById('resetAll').onclick = () => {
+      if (!confirm('¿Limpiar las dos cámaras guardadas en este navegador?')) return;
+      defaults.forEach(d => localStorage.removeItem('obra-live:' + d.id)); location.href = location.pathname;
+    };
+    document.getElementById('copyLink').onclick = async () => {
+      const params = new URLSearchParams();
+      document.querySelectorAll('.card').forEach(c => {
+        const id = c.dataset.id; const u = c.querySelector('.url').value.trim(); if (u) params.set(id, u);
+      });
+      const link = location.origin + location.pathname + (params.toString() ? '?' + params.toString() : '');
+      await navigator.clipboard.writeText(link).catch(() => prompt('Copia el link:', link));
+    };
+    function tick() {
+      document.getElementById('now').textContent = new Intl.DateTimeFormat('es-MX', {
+        weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      }).format(new Date());
+    }
+    tick(); setInterval(tick, 1000);
+    setInterval(() => document.querySelectorAll('.card').forEach(c => c._refresh && c._refresh()), 60000);
+  </script>
+</body>
+</html>
